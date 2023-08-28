@@ -93,3 +93,183 @@ Petite parenthese sur les optionnels:
     ```
 
 On appelle le `?` "optional chaining operator". Il permet de ne pas avoir d'erreur si l'objet est null ou undefined.
+
+## Le binding de propriété
+
+L’interpolation n’est qu’une des façons d’avoir des morceaux dynamiques dans nos templates.
+
+En fait, l’interpolation n’est qu’une simplification du concept au cœur du moteur de template d’Angular : le binding de propriété.
+
+En Angular, on peut écrire dans toutes les propriétés du DOM via des attributs spéciaux sur les éléments HTML, entourés de crochets []. Ça fait bizarre au premier abord, mais en fait c’est du HTML valide (et ça m’a aussi surpris). Un nom d’attribut HTML peut commencer par n’importe quoi, à l’exception de quelques caractères comme un guillemet ", une apostrophe ', un slash /, un égal =, un espace...
+
+Je mentionne les propriétés du DOM, mais peut-être n’est-ce pas clair pour toi. On écrit en général dans des attributs HTML, n’est-ce pas ? Tout à fait, en général c’est ce qu’on fait. Prenons ce simple morceau d’HTML :
+
+```html
+<input type="text" value="Hello" />
+```
+
+Nous avons utilise l'interpolation pour afficher le contenu d'une variable:
+
+```
+<p>{{ user.name }}</p>
+```
+
+en realite cela correspond a ceci :
+
+```html
+<p [textContent]="user.name"></p>
+```
+
+```html
+<option selected>Rainbow Dash</option>
+```
+
+```html
+<option [selected]="isPonySelected" value="Rainbow Dash">Rainbow Dash</option>
+
+<ns-pony name="Pony {{ pony.name }}"></ns-pony>
+
+<ns-pony [name]="'Pony ' + pony.name"></ns-pony>
+```
+
+## Les events
+
+Avec Angular nous disposons de **directives** specifiques a divers elements du DOM
+
+````html
+<button (click)="onButtonClick()">Click me</button>
+
+``` html Au sein de votre composant races : ``` typescript @Component({
+selector: 'ns-races', template: `
+<h2>Races</h2>
+<button (click)="refreshRaces()">Refresh the races list</button>
+<p>{{ races.length }} races</p>
+`, standalone: true }) export class RacesComponent { races: Array<RaceModel>
+  = []; refreshRaces(): void { this.races = [{ name: 'London' }, { name: 'Lyon'
+  }]; } }</RaceModel
+>
+````
+
+Vous pouvez acceder a l'evenement lors de l'appel de la fonction :
+
+```html
+<div (click)="onButtonClick($event)"><button>Click me!</button></div>
+```
+
+```typescript
+onButtonClick(event: MouseEvent): void {
+  console.log(event);
+  event.stopPropagation();
+  event.preventDefault();
+}
+```
+
+On peut aussi gerer les evenements du clavier:
+
+```html
+<textarea (keydown)="onKeyDown($event)"></textarea>
+```
+
+Je vais tenter de vous expliquer la difference entre :
+
+```html
+<component [property]="doSomething()"></component>
+```
+
+et
+
+```html
+<component (event)="doSomething()"></component>
+```
+
+Dans le premier cas de binding de propriété, la valeur doSomething() est une expression, et sera évaluée à chaque cycle de détection de changement pour déterminer si la propriété doit être modifiée.
+Dans le second cas de binding d’événement, la valeur doSomething() est une instruction (statement), et ne sera évaluée que lorsque l’événement est déclenché.
+Par définition, ces deux bindings ont des objectifs complètement différents, et comme tu t’en doutes,
+des restrictions d’usage différentes. Par exemple, il est impossible d’utiliser un binding d’événement sur une propriété, et inversement.
+
+```html
+<component [property]="user = 'Cedric'"></component>
+```
+
+### Les variables locales
+
+```html
+<input #nameInput type="text" /> {{nameInput.value}}
+```
+
+On peut utiliser une methode standard de l'API du DOM avec une variable locale en Angular:
+
+```html
+<input type="text" #name />
+<button (click)="name.focus()">Focus the input</button>
+```
+
+On peut aussi utiliser les variables locales avec des composants specifiques importe dans notre projet:
+
+```html
+<google-youtube #player></google-youtube>
+<button (click)="player.play()">Play!</button>
+```
+
+## Les directives de structure
+
+Les directives de structure sont des directives qui modifient la structure du DOM. Elles sont faciles à reconnaître : elles commencent par un astérisque \*.
+
+```html
+<div *ngIf="races.length > 0"><h2>Races</h2></div>
+```
+
+ <div *ngIf="races.length > 0">
+        <h2>Races</h2>
+        <ul>
+          <li *ngFor="let race of races">{{ race.name }}</li>
+        </ul>
+</div>
+
+```html
+<div [ngSwitch]="messageCount">
+  <p *ngSwitchCase="0">You have no message</p>
+  <p *ngSwitchCase="1">You have a message</p>
+  <p *ngSwitchDefault>You have some messages</p>
+</div>
+```
+
+## Les directives de templating
+
+### NgStyle
+
+```html
+<div [ngStyle]="{fontWeight: fontWeight, color: color}">I've got style</div>
+```
+
+### NgClass
+
+```html
+<div [class.awesome-div]="isAnAwesomeDiv()">I've got style</div>
+```
+
+```html
+<div
+  [class.awesome-div]="isAnAwesomeDiv()"
+  [class.wonderful-div]="isAWonderfulDiv()"
+>
+  I've got style
+</div>
+```
+
+```html
+<div
+  [ngClass]="{'awesome-div': isAnAwesomeDiv(), 'wonderful-div':isAWonderfulDiv()}"
+>
+  I've got style
+</div>
+```
+
+## Resume
+Le système de template d’Angular nous propose une syntaxe puissante pour exprimer les parties dynamiques de notre HTML. Elle nous permet d’exprimer du binding de données, de propriétés, d’événements, et des considérations de templating, d’une façon claire, avec des symboles propres :
+
+- {{ }} pour l’interpolation
+- [] pour le binding de propriété
+- () pour le binding d’événement
+- # pour les variables locales
+- \* pour les directives de structure
